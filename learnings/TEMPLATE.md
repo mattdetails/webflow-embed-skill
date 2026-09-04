@@ -1,5 +1,5 @@
 ---
-id:            # leave blank — assigned at promotion (L-0NN)
+id:            # required, even while pending: next free L-0NN (validate.mjs enforces it)
 date:          # YYYY-MM-DD
 slug:          # short-kebab-case, matches the filename
 project:       # repo or client site this came from
