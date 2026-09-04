@@ -8,7 +8,7 @@ severity: debugging-time
 blast_radius: any component combining a carousel or scroll library with its own animation
 supersedes:
 proposed_rule: Animate a child element rather than contesting a property the library owns.
-rule: H6
+rule: R6
 ---
 
 ## Symptom

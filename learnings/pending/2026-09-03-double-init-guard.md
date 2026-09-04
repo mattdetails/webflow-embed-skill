@@ -8,7 +8,7 @@ severity: debugging-time
 blast_radius: Editor mode, CMS re-render, and head-script-plus-leftover-embed overlap
 supersedes:
 proposed_rule: Guard init with a flag on the element so a second run is a no-op.
-rule: H8
+rule: R8
 ---
 
 ## Symptom
@@ -31,7 +31,7 @@ fire on the same node.
 
 **Weak — this is the honest status of this learning.** The three routes are real
 properties of the Webflow runtime, and the guard is cheap and standard practice, but no
-specific logged bug in these projects traces to it. Promoted to `SKILL.md` as rule H8
+specific logged bug in these projects traces to it. Promoted to `SKILL.md` as rule R8
 provisionally, and marked as such there.
 
 To firm it up: catch it happening once, in Editor mode or after a CMS re-render, and

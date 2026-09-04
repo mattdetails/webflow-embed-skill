@@ -39,18 +39,18 @@ import('https://cdn.jsdelivr.net/npm/locomotive-scroll@5.0.1/+esm')
   .catch(function () { /* degrade, and undo anything already applied */ });
 ```
 
-Rule H5 applies: a static top-level `import` that fails has nothing to catch it.
+Rule R5 applies: a static top-level `import` that fails has nothing to catch it.
 
 ## Verifying a release
 
 1. Publish to the staging domain (`*.webflow.io`) first when one exists.
 2. Hard-reload — Webflow sets long cache headers on published assets.
 3. Check the console for **zero** uncaught errors and **zero** unhandled rejections.
-   An unhandled rejection is the specific signature of a failed import (H5).
+   An unhandled rejection is the specific signature of a failed import (R5).
 4. Test the failure path deliberately: point the CDN URL at a version that does not
    exist and confirm the page degrades cleanly rather than breaking.
 5. Test on a real phone. Touch and pointer branches genuinely diverge — the loop bug
-   behind rule H9 was invisible on desktop.
+   behind rule R9 was invisible on desktop.
 
 ## Rollback
 

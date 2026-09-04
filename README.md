@@ -72,7 +72,7 @@ before writing anything, and the consolidator is told in `tools/consolidate-prom
 *"Rejection is the common and correct outcome. Do not soften a rejection into a weak
 rule."*
 
-There is a fourth, smaller one: uncertainty is visible. Rule **H8** is marked
+There is a fourth, smaller one: uncertainty is visible. Rule **R8** is marked
 `[L-009 — provisional]` because no logged bug traces to it — it is a sound inference,
 not a scar. Its learning file says so, and says exactly what evidence would settle it.
 CI enforces the marker: cite a pending learning as settled and the build fails.

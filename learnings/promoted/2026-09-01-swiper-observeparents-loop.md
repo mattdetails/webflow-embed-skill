@@ -8,7 +8,7 @@ severity: live-bug
 blast_radius: touch devices only, and only once the carousel reaches either end
 supersedes:
 proposed_rule: Never enable an ancestor observer on a library instance whose sync code writes to an ancestor.
-rule: H9
+rule: R9
 ---
 
 ## Symptom

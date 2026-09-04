@@ -8,7 +8,7 @@ severity: live-bug
 blast_radius: any element whose hover swaps color and background-color
 supersedes:
 proposed_rule: Never bind a design token to currentColor.
-rule: H3
+rule: R3
 ---
 
 ## Symptom

@@ -8,7 +8,7 @@ severity: debugging-time
 blast_radius: any component split across embeds, or depending on a site-wide library
 supersedes:
 proposed_rule: Poll for the dependency rather than trusting embed or script order.
-rule: H4
+rule: R4
 ---
 
 ## Symptom

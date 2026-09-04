@@ -8,7 +8,7 @@ severity: live-bug
 blast_radius: any responsive library config with per-breakpoint objects
 supersedes:
 proposed_rule: Repeat every key in every breakpoint object; absent keys come back undefined, not inherited.
-rule: H7
+rule: R7
 ---
 
 ## Symptom

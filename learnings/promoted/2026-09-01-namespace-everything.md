@@ -8,7 +8,7 @@ severity: rebuild
 blast_radius: any Webflow site that later gains a second instance of the same library
 supersedes:
 proposed_rule: Namespace classes, custom properties, data attributes, and the library's own generated class names.
-rule: H1
+rule: R1
 ---
 
 ## Symptom

@@ -7,33 +7,51 @@ status: promoted
 severity: live-bug
 blast_radius: any HTML Embed; failure is silent
 supersedes:
-proposed_rule: No literal closing style or script tag anywhere in a file destined for an Embed — including in strings and comments.
-rule: H2
+proposed_rule: No literal closing tag for the block a file becomes — in strings and comments too. Only the matching tag matters.
+rule: R2
 ---
 
 ## Symptom
 
-An embed's contents stop working partway through, with no console error and no visual
-indication of where it stopped.
+An embed's contents stop working partway through. The remainder of the code appears as
+visible text on the page, and the console error — when there is one — points at a line
+that looks perfectly fine.
 
 ## Cause
 
-The HTML parser closes the block at the first literal closing tag it sees, wherever it
-appears — inside a JS string, a comment, or a regex included. Everything after it is
-parsed as page markup and discarded.
+A script block ends at the first `</script` the HTML tokenizer sees, and a style block
+at the first `</style`. The tokenizer is in RAWTEXT/script-data state and reads tags,
+not JavaScript or CSS, so a string, comment or regex gives no protection.
+
+Only the **matching** tag terminates the block.
 
 ## Fix
 
-Never write the literal sequence. Where one must be emitted, split it across a
-concatenation so the parser never sees it whole.
+Check each source file against the block it actually becomes. Where the sequence must be
+emitted, split it so the parser never sees it whole: `'<' + '/script>'`.
 
 ## Evidence
 
-Recorded in the project README's live-bug list.
+Originally recorded in a project README's live-bug list. **Re-verified 2026-09-03**
+against Python's `html.parser`, which implements the same RAWTEXT rule:
+
+| Input | Result |
+|---|---|
+| `<script>var s = "</script>"; done();</script>` | script ends inside the string; `done()` never runs; `"; done();` leaks to the page |
+| `<script>var s = "</style>"; done();</script>` | **harmless** — passes through as script data |
+| `<style>.a{} /* </style> */ .b{}</style>` | style ends inside the comment; `*/ .b{}` leaks to the page |
+| `<style>.a{} /* </script> */ .b{}</style>` | **harmless** |
+| `<script>var s = "<" + "/script>";</script>` | the escape works |
+
+The two harmless rows corrected the rule: the first version banned both tags in every
+file, which is over-broad. The original wording also called the failure silent; in the
+common case JS throws an unterminated-string error as well.
 
 ## Why it generalises
 
-It is a property of the HTML parser and of the Embed delivery mechanism, not of any
-component. Every embed-delivered component is exposed to it, and the silence is what
-makes it expensive — it presents as "the code just doesn't run" rather than as a
-syntax error.
+It is a property of the HTML parser, not of any component or of Webflow — every inline
+script or style in any HTML is exposed to it. Embeds just make it likely, because they
+are where hand-written script and style get pasted whole.
+
+What makes it expensive is misdirection rather than silence: the break happens at the
+tag, but the error surfaces wherever the truncated code first fails to parse.

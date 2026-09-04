@@ -8,7 +8,7 @@ severity: live-bug
 blast_radius: any CDN-loaded module; triggered by content blockers and proxies
 supersedes:
 proposed_rule: Wrap every dynamic import in .catch, and undo anything already applied on failure.
-rule: H5
+rule: R5
 ---
 
 ## Symptom

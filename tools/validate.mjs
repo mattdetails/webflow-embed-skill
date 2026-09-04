@@ -96,7 +96,7 @@ for (const id of cited) {
 
 // ------------------------------------------------------- 4. orphans and staleness
 for (const l of promoted) {
-  if (l.fm.rule && l.fm.rule.startsWith('H') && !main.includes(l.fm.rule + ' '))
+  if (l.fm.rule && l.fm.rule.startsWith('R') && !main.includes(l.fm.rule + ' '))
     warn(`${l.file} claims rule ${l.fm.rule}, but SKILL.md has no such rule — promoted but not in use.`);
   if (!/## Evidence\s*\n\s*\S/.test(l.text))
     fail(`${l.file}: empty Evidence section. Promotion requires evidence.`);

@@ -35,7 +35,7 @@ window.Webflow.push(function () { /* runs after Webflow is ready */ });
 ```
 
 Useful, but it is not a dependency guarantee for *your* third-party libraries — only
-for Webflow itself. Still poll for `window.Swiper` etc. (rule H4).
+for Webflow itself. Still poll for `window.Swiper` etc. (rule R4).
 
 ## What Webflow does to your markup
 
@@ -65,6 +65,6 @@ for Webflow itself. Still poll for `window.Swiper` etc. (rule H4).
 ## Editor mode
 
 The Webflow Editor re-renders sections as content is edited. That is the main real-world
-cause of double-initialisation (rule H8) and of components binding to nodes that are
+cause of double-initialisation (rule R8) and of components binding to nodes that are
 later replaced. Bind with delegation or re-run your init on a `MutationObserver` scoped
 to your own container — never to `document`.
