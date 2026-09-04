@@ -29,17 +29,32 @@ jobs:
         id: pre
         env:
           HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          EVENT: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+          OWNER: ${{ github.repository_owner }}
         run: |
           count=$(find learnings/pending -name '*.md' ! -name '.gitkeep' | wc -l | tr -d ' ')
           echo "count=$count" >> "$GITHUB_OUTPUT"
-          if [ "$count" != "0" ] && [ "$HAS_KEY" = "true" ]; then
+
+          # This job holds the API key and reads learnings/pending, whose text goes
+          # straight into a model prompt. Only work this repo's owner put there is
+          # trusted -- a merged outside PR is a push like any other, so the key would
+          # otherwise run over a stranger's text.
+          trusted=false
+          if [ "$EVENT" = "schedule" ] || [ "$ACTOR" = "$OWNER" ]; then trusted=true; fi
+
+          if [ "$count" != "0" ] && [ "$HAS_KEY" = "true" ] && [ "$trusted" = "true" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "$count pending learning(s); api key present: $HAS_KEY"
+
+          echo "$count pending learning(s); key: $HAS_KEY; event: $EVENT; actor: $ACTOR; trusted: $trusted"
           if [ "$count" != "0" ] && [ "$HAS_KEY" != "true" ]; then
             echo "::notice::$count pending learning(s), but no ANTHROPIC_API_KEY secret is set. Review them by hand, or add the secret to enable automatic consolidation."
+          fi
+          if [ "$trusted" != "true" ]; then
+            echo "::warning::Skipped: $ACTOR is not the repository owner. Run it yourself from the Actions tab once you have reviewed what landed in learnings/pending."
           fi
 
       - uses: actions/setup-node@v4
@@ -66,6 +81,18 @@ jobs:
       - name: Validate the result
         if: steps.pre.outputs.run == 'true'
         run: node tools/validate.mjs
+
+      # The report becomes a public PR body, which GitHub does not redact the way it
+      # redacts job logs. Cheap belt-and-braces before it is published.
+      - name: Refuse to publish a report containing the key
+        if: steps.pre.outputs.run == 'true'
+        env:
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$KEY" ] && grep -qF -- "$KEY" /tmp/consolidate-report.md; then
+            echo "::error::The generated report contains the API key. Refusing to open a PR."
+            exit 1
+          fi
 
       - name: Open pull request
         if: steps.pre.outputs.run == 'true'
