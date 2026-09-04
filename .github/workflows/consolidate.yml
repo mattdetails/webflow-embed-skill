@@ -71,11 +71,17 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          set +e
           claude -p "$(cat tools/consolidate-prompt.md)" \
             --allowedTools "Read,Edit,Write,Bash(git mv:*),Bash(node tools/validate.mjs)" \
             --permission-mode acceptEdits \
-            > /tmp/consolidate-report.md
-          cat /tmp/consolidate-report.md
+            > /tmp/consolidate-report.md 2> /tmp/consolidate-stderr.txt
+          code=$?
+          set -e
+          echo "claude exited $code"
+          echo "----- stderr -----"; cat /tmp/consolidate-stderr.txt || true
+          echo "----- stdout -----"; cat /tmp/consolidate-report.md || true
+          exit $code
 
       # The gate that matters: a proposal that breaks provenance never reaches a PR.
       - name: Validate the result
