@@ -1,0 +1,19 @@
+name: validate
+
+# Layer A of the loop. No secrets, no API key, no model. Structural only:
+# is every rule traceable to evidence, is the skill still small enough to read.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate skill and learnings
+        run: node tools/validate.mjs

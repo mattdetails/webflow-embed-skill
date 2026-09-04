@@ -1,0 +1,78 @@
+name: consolidate
+
+# Layer B of the loop. Reads learnings/pending/ and opens a PR proposing edits to the
+# skill. Needs an ANTHROPIC_API_KEY repo secret; skips itself cleanly without one, so
+# the repo stays fully usable as a manual-review workflow.
+#
+# It never pushes to main. A human merges, or does not.
+on:
+  push:
+    branches: [main]
+    paths: ['learnings/pending/**']
+  schedule:
+    - cron: '0 14 * * 1'      # Mondays, 14:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The secrets context is not dependable inside a step-level `if`, so both
+      # conditions are resolved here into plain step outputs.
+      - name: Preflight
+        id: pre
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          count=$(find learnings/pending -name '*.md' ! -name '.gitkeep' | wc -l | tr -d ' ')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          if [ "$count" != "0" ] && [ "$HAS_KEY" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "$count pending learning(s); api key present: $HAS_KEY"
+          if [ "$count" != "0" ] && [ "$HAS_KEY" != "true" ]; then
+            echo "::notice::$count pending learning(s), but no ANTHROPIC_API_KEY secret is set. Review them by hand, or add the secret to enable automatic consolidation."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.pre.outputs.run == 'true'
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code
+        if: steps.pre.outputs.run == 'true'
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Consolidate
+        if: steps.pre.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p "$(cat tools/consolidate-prompt.md)" \
+            --allowedTools "Read,Edit,Write,Bash(git mv:*),Bash(node tools/validate.mjs)" \
+            --permission-mode acceptEdits \
+            > /tmp/consolidate-report.md
+          cat /tmp/consolidate-report.md
+
+      # The gate that matters: a proposal that breaks provenance never reaches a PR.
+      - name: Validate the result
+        if: steps.pre.outputs.run == 'true'
+        run: node tools/validate.mjs
+
+      - name: Open pull request
+        if: steps.pre.outputs.run == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: consolidate/${{ github.run_id }}
+          title: 'Consolidate ${{ steps.pre.outputs.count }} pending learning(s)'
+          body-path: /tmp/consolidate-report.md
+          labels: skill-update
+          delete-branch: true
